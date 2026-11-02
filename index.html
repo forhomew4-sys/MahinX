@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080b12" />
+  <meta name="description" content="MahinX Esports & Arcade Zone — mini games for Telegram." />
+  <title>MahinX Game Zone</title>
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Adsgram SDK -->
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top Bar: MahinX Header & Telegram User Profile -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo-badge">M</div>
+      <div class="brand-text">
+        <h2>MahinX</h2>
+        <span class="sub-text">Esports & Arcade Zone</span>
+      </div>
+    </div>
+    <div class="coins-badge">
+      🪙 <span id="coin-txt">100</span>
+    </div>
+  </header>
+
+  <!-- User Info Banner -->
+  <section class="user-card">
+    <div class="avatar" id="avatar">U</div>
+    <div class="user-details">
+      <h4 id="u-name">Player</h4>
+      <p id="u-id">@username</p>
+    </div>
+  </section>
+
+  <!-- Adsgram Rewarded Ad Action -->
+  <section class="ad-container">
+    <button class="ad-btn" id="show-ad">
+      <span>🎬</span> Watch Video Ad (+100 Coins)
+    </button>
+    <p class="status-alert" id="ad-status" role="status" aria-live="polite"></p>
+    <div id="task-ad-slot"></div>
+    <p class="status-alert" id="task-status" role="status" aria-live="polite"></p>
+    <button class="action-btn claim-btn" id="claim-reward" hidden>
+      Claim game reward
+    </button>
+  </section>
+
+  <!-- Game Category Tabs -->
+  <nav class="game-tabs">
+    <button class="tab-btn active" onclick="switchGame('ttt', this)">❌⭕ Tic-Tac-Toe</button>
+    <button class="tab-btn" onclick="switchGame('coin', this)">🪙 Coin Flip</button>
+    <button class="tab-btn" onclick="switchGame('guess', this)">🔢 Guess Number</button>
+    <button class="tab-btn" onclick="switchGame('dice', this)">🎲 Lucky Dice</button>
+    <button class="tab-btn" onclick="switchGame('tap', this)">⚡ Tap Rush</button>
+  </nav>
+
+  <!-- Main Game Arena -->
+  <main class="arena">
+
+    <!-- Game 1: Tic Tac Toe (Vs Smart AI) -->
+    <div class="game-view active" id="view-ttt">
+      <h3 class="game-title">Tic-Tac-Toe (Vs AI)</h3>
+      <div class="ttt-board" id="ttt-grid" aria-label="Tic-Tac-Toe board"></div>
+      <p class="status-alert" id="ttt-status" role="status" aria-live="polite">আপনার চাল (X)</p>
+      <button class="action-btn" onclick="resetTTT()">Restart Game</button>
+    </div>
+
+    <!-- Game 2: Coin Flip -->
+    <div class="game-view" id="view-coin">
+      <h3 class="game-title">Head or Tail</h3>
+      <div class="game-display-icon" id="coin-anim">🪙</div>
+      <div class="dual-btn-group">
+        <button class="action-btn" onclick="flipCoin('Head')">Head</button>
+        <button class="action-btn" onclick="flipCoin('Tail')">Tail</button>
+      </div>
+      <p class="status-alert" id="coin-status">অপশন পছন্দ করুন (Win = +20)</p>
+    </div>
+
+    <!-- Game 3: Guess Number -->
+    <div class="game-view" id="view-guess">
+      <h3 class="game-title">Guess Number (1 - 10)</h3>
+      <div class="input-group">
+        <input type="number" id="guess-input" min="1" max="10" step="1" inputmode="numeric" placeholder="?" aria-label="১ থেকে ১০-এর মধ্যে সংখ্যা" />
+      </div>
+      <button class="action-btn" onclick="checkGuess()">Check Guess</button>
+      <p class="status-alert" id="guess-status">১ থেকে ১০ এর মধ্যে সংখ্যা অনুমান করুন (Win = +30)</p>
+    </div>
+
+    <!-- Game 4: Lucky Dice -->
+    <div class="game-view" id="view-dice">
+      <h3 class="game-title">Lucky Dice Roll</h3>
+      <div class="game-display-icon" id="dice-face">🎲</div>
+      <button class="action-btn" onclick="rollDice()">Roll Dice</button>
+      <p class="status-alert" id="dice-status">ছক্কা (৬) পড়লে পাবেন +৫০ কয়েন!</p>
+    </div>
+
+    <!-- Game 5: Tap Rush -->
+    <div class="game-view" id="view-tap">
+      <h3 class="game-title">৫ সেকেন্ডে ট্যাপ রাশ</h3>
+      <h2 id="tap-timer" class="highlight-timer">Time: 5s</h2>
+      <div class="tap-counter">ট্যাপ সংখ্যা: <span id="tap-count">0</span></div>
+      <button class="action-btn tap-large" id="tap-btn" onclick="handleTap()">TAP HERE!</button>
+      <p class="status-alert" id="tap-status">শুরু করতে বোতামে ট্যাপ করুন!</p>
+    </div>
+
+  </main>
+
+  <!-- External Script -->
+  <script src="script.js"></script>
+</body>
+</html>
