@@ -29,12 +29,20 @@ if (tg) {
 
 // --- 2. COINS / POINTS PERSISTENCE ---
 const playerKey = telegramUser?.id ?? "guest";
-const coinsStorageKey = `mahinx_coins_${playerKey}`;
-const pendingCoinsStorageKey = `mahinx_pending_coins_${playerKey}`;
-let coins = Number.parseInt(localStorage.getItem(coinsStorageKey) ?? "100", 10);
+const coinsStorageKey = `mahin6_coins_${playerKey}`;
+const pendingCoinsStorageKey = `mahin6_pending_coins_${playerKey}`;
+const previousCoinsStorageKey = `mahinx_coins_${playerKey}`;
+const previousPendingCoinsStorageKey = `mahinx_pending_coins_${playerKey}`;
+const storedCoins = localStorage.getItem(coinsStorageKey) ??
+  localStorage.getItem(previousCoinsStorageKey) ?? "100";
+const storedPendingCoins = localStorage.getItem(pendingCoinsStorageKey) ??
+  localStorage.getItem(previousPendingCoinsStorageKey) ?? "0";
+let coins = Number.parseInt(storedCoins, 10);
 if (!Number.isSafeInteger(coins) || coins < 0) coins = 100;
-let pendingCoins = Number.parseInt(localStorage.getItem(pendingCoinsStorageKey) ?? "0", 10);
+let pendingCoins = Number.parseInt(storedPendingCoins, 10);
 if (!Number.isSafeInteger(pendingCoins) || pendingCoins < 0) pendingCoins = 0;
+localStorage.setItem(coinsStorageKey, String(coins));
+localStorage.setItem(pendingCoinsStorageKey, String(pendingCoins));
 
 function updateCoins(amount) {
   if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(coins + amount)) {
@@ -74,8 +82,8 @@ renderPendingReward();
 
 // --- 3. ADSGRAM INTEGRATION ---
 const ADSGRAM_BLOCKS = {
-  reward: "57505",
-  interstitial: "int-57506"
+  reward: "57548",
+  interstitial: "int-57549"
 };
 const AdControllers = window.Adsgram
   ? Object.fromEntries(
@@ -114,7 +122,7 @@ const taskStatus = document.getElementById("task-status");
 if (tg?.initData && customElements.get("adsgram-task")) {
   const taskAd = document.createElement("adsgram-task");
   taskAd.id = "task-ad";
-  taskAd.dataset.blockId = "task-57507";
+  taskAd.dataset.blockId = "task-57550";
   taskAd.addEventListener("reward", () => {
     updateCoins(50);
     taskStatus.textContent = "Task সম্পন্ন! ৫০ কয়েন balance-এ যোগ হয়েছে।";
@@ -364,3 +372,198 @@ function handleTap() {
     document.getElementById("tap-count").innerText = tapCount;
   }
 }
+
+// --- GAME 6: MEMORY MATCH ---
+const memorySymbols = ["🐱", "🍋", "🚀", "⭐", "🎮", "💎"];
+const memoryBoard = document.getElementById("memory-board");
+let memoryCards = [];
+let memoryFlipped = [];
+let memoryMatched = new Set();
+let memoryLocked = false;
+let memoryCompleted = false;
+let memoryTimer = null;
+
+function startMemoryGame() {
+  if (memoryTimer !== null) {
+    clearTimeout(memoryTimer);
+    memoryTimer = null;
+  }
+  memoryCards = [...memorySymbols, ...memorySymbols].map((symbol) => ({ symbol }));
+  for (let index = memoryCards.length - 1; index > 0; index--) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [memoryCards[index], memoryCards[swapIndex]] =
+      [memoryCards[swapIndex], memoryCards[index]];
+  }
+  memoryFlipped = [];
+  memoryMatched = new Set();
+  memoryLocked = false;
+  memoryCompleted = false;
+  document.getElementById("memory-status").textContent =
+    "সব জোড়া মেলালে +60 coins পাবেন।";
+  document.getElementById("memory-restart").textContent = "New Game";
+  renderMemoryBoard();
+}
+
+function renderMemoryBoard() {
+  memoryBoard.replaceChildren();
+  memoryCards.forEach((card, index) => {
+    const button = document.createElement("button");
+    const isVisible = memoryFlipped.includes(index) || memoryMatched.has(index);
+    button.type = "button";
+    button.className = `memory-card${memoryMatched.has(index) ? " matched" : ""}`;
+    button.textContent = isVisible ? card.symbol : "?";
+    button.disabled = memoryLocked || memoryCompleted || memoryMatched.has(index) ||
+      memoryFlipped.includes(index);
+    button.setAttribute(
+      "aria-label",
+      isVisible ? `কার্ড ${index + 1}: ${card.symbol}` : `কার্ড ${index + 1}, ঢাকা`
+    );
+    button.addEventListener("click", () => flipMemoryCard(index));
+    memoryBoard.appendChild(button);
+  });
+}
+
+function flipMemoryCard(index) {
+  if (memoryLocked || memoryCompleted || memoryMatched.has(index) ||
+      memoryFlipped.includes(index)) return;
+  memoryFlipped.push(index);
+
+  if (memoryFlipped.length < 2) {
+    renderMemoryBoard();
+    return;
+  }
+
+  const [first, second] = memoryFlipped;
+  if (memoryCards[first].symbol === memoryCards[second].symbol) {
+    memoryMatched.add(first);
+    memoryMatched.add(second);
+    memoryFlipped = [];
+    if (memoryMatched.size === memoryCards.length) {
+      memoryCompleted = true;
+      updatePendingCoins(60);
+      document.getElementById("memory-status").textContent =
+        "সব জোড়া মিলেছে! +60 coins — Claim করুন।";
+      document.getElementById("memory-restart").textContent = "Play Again";
+      finishGameRound();
+    }
+    renderMemoryBoard();
+    return;
+  }
+
+  memoryLocked = true;
+  renderMemoryBoard();
+  memoryTimer = setTimeout(() => {
+    memoryFlipped = [];
+    memoryLocked = false;
+    memoryTimer = null;
+    renderMemoryBoard();
+  }, 800);
+}
+
+startMemoryGame();
+
+// --- GAME 7: ROCK PAPER SCISSORS ---
+const rpsMoves = {
+  rock: { label: "Rock", emoji: "✊" },
+  paper: { label: "Paper", emoji: "✋" },
+  scissors: { label: "Scissors", emoji: "✌️" }
+};
+
+function playRps(playerMove) {
+  const choices = Object.keys(rpsMoves);
+  const computerMove = choices[Math.floor(Math.random() * choices.length)];
+  const player = rpsMoves[playerMove];
+  const computer = rpsMoves[computerMove];
+  if (!player) return;
+
+  let outcome;
+  if (playerMove === computerMove) {
+    outcome = "ড্র হয়েছে!";
+  } else if (
+    (playerMove === "rock" && computerMove === "scissors") ||
+    (playerMove === "paper" && computerMove === "rock") ||
+    (playerMove === "scissors" && computerMove === "paper")
+  ) {
+    outcome = "আপনি জিতেছেন! +15 coins — Claim করুন।";
+    updatePendingCoins(15);
+  } else {
+    outcome = "কম্পিউটার জিতেছে। আবার চেষ্টা করুন!";
+  }
+
+  document.getElementById("rps-status").textContent =
+    `${player.emoji} বনাম ${computer.emoji} — ${outcome}`;
+  finishGameRound();
+}
+
+// --- GAME 8: QUICK MATH ---
+let mathRound = 1;
+let mathScore = 0;
+let mathAnswer = null;
+let mathActive = false;
+
+function createMathQuestion() {
+  const operators = ["+", "-", "×"];
+  const operator = operators[Math.floor(Math.random() * operators.length)];
+  let first = Math.floor(Math.random() * 12) + 1;
+  let second = Math.floor(Math.random() * 12) + 1;
+  if (operator === "-" && second > first) {
+    [first, second] = [second, first];
+  }
+
+  mathAnswer = operator === "+"
+    ? first + second
+    : operator === "-"
+      ? first - second
+      : first * second;
+  document.getElementById("math-question").textContent =
+    `${first} ${operator} ${second} = ?`;
+}
+
+function startMathChallenge() {
+  mathRound = 1;
+  mathScore = 0;
+  mathActive = true;
+  document.getElementById("math-round").textContent = "Round 1 of 5";
+  document.getElementById("math-status").textContent =
+    "সঠিক উত্তরে +10 coins, মোট ৫টি প্রশ্ন।";
+  document.getElementById("math-answer").value = "";
+  document.getElementById("math-submit").hidden = false;
+  document.getElementById("math-restart").hidden = true;
+  createMathQuestion();
+}
+
+function submitMathAnswer() {
+  const input = document.getElementById("math-answer");
+  const value = input.value.trim();
+  const answer = Number(value);
+  if (!mathActive || value === "" || !Number.isInteger(answer)) {
+    document.getElementById("math-status").textContent = "একটি পূর্ণসংখ্যার উত্তর লিখুন।";
+    return;
+  }
+
+  if (answer === mathAnswer) {
+    mathScore++;
+    updatePendingCoins(10);
+    document.getElementById("math-status").textContent = "সঠিক! +10 coins — Claim করুন।";
+  } else {
+    document.getElementById("math-status").textContent = `ভুল উত্তর। সঠিক উত্তর ছিল ${mathAnswer}।`;
+  }
+
+  if (mathRound === 5) {
+    mathActive = false;
+    document.getElementById("math-round").textContent = "Challenge complete";
+    document.getElementById("math-question").textContent =
+      `আপনার score: ${mathScore}/5`;
+    document.getElementById("math-submit").hidden = true;
+    document.getElementById("math-restart").hidden = false;
+    finishGameRound();
+    return;
+  }
+
+  mathRound++;
+  document.getElementById("math-round").textContent = `Round ${mathRound} of 5`;
+  input.value = "";
+  createMathQuestion();
+}
+
+startMathChallenge();
