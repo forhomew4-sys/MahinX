@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#080b12" />
-  <meta name="description" content="MahinX Esports & Arcade Zone — mini games for Telegram." />
-  <title>MahinX Game Zone</title>
+  <meta name="description" content="Mahin6 Arcade — mini games for Telegram." />
+  <title>Mahin6 Arcade</title>
 
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -17,13 +17,13 @@
 </head>
 <body>
 
-  <!-- Top Bar: MahinX Header & Telegram User Profile -->
+  <!-- Top Bar: Mahin6 Header & Telegram User Profile -->
   <header class="app-header">
     <div class="brand">
       <div class="logo-badge">M</div>
       <div class="brand-text">
-        <h2>MahinX</h2>
-        <span class="sub-text">Esports & Arcade Zone</span>
+        <h2>Mahin6</h2>
+        <span class="sub-text">Mini Game Arcade</span>
       </div>
     </div>
     <div class="coins-badge">
@@ -60,6 +60,9 @@
     <button class="tab-btn" onclick="switchGame('guess', this)">🔢 Guess Number</button>
     <button class="tab-btn" onclick="switchGame('dice', this)">🎲 Lucky Dice</button>
     <button class="tab-btn" onclick="switchGame('tap', this)">⚡ Tap Rush</button>
+    <button class="tab-btn" onclick="switchGame('memory', this)">🧠 Memory Match</button>
+    <button class="tab-btn" onclick="switchGame('rps', this)">✊ Rock Paper Scissors</button>
+    <button class="tab-btn" onclick="switchGame('math', this)">➕ Quick Math</button>
   </nav>
 
   <!-- Main Game Arena -->
@@ -109,6 +112,48 @@
       <div class="tap-counter">ট্যাপ সংখ্যা: <span id="tap-count">0</span></div>
       <button class="action-btn tap-large" id="tap-btn" onclick="handleTap()">TAP HERE!</button>
       <p class="status-alert" id="tap-status">শুরু করতে বোতামে ট্যাপ করুন!</p>
+    </div>
+
+    <!-- Game 6: Memory Match -->
+    <div class="game-view" id="view-memory">
+      <h3 class="game-title">Memory Match</h3>
+      <p class="game-instructions">সব matching emoji জোড়া খুঁজে বের করুন।</p>
+      <div class="memory-board" id="memory-board" aria-label="Memory Match board"></div>
+      <p class="status-alert" id="memory-status" role="status" aria-live="polite">
+        সব জোড়া মেলালে +60 coins পাবেন।
+      </p>
+      <button class="action-btn" id="memory-restart" onclick="startMemoryGame()">New Game</button>
+    </div>
+
+    <!-- Game 7: Rock Paper Scissors -->
+    <div class="game-view" id="view-rps">
+      <h3 class="game-title">Rock Paper Scissors</h3>
+      <div class="rps-options">
+        <button class="action-btn" onclick="playRps('rock')">✊ Rock</button>
+        <button class="action-btn" onclick="playRps('paper')">✋ Paper</button>
+        <button class="action-btn" onclick="playRps('scissors')">✌️ Scissors</button>
+      </div>
+      <p class="status-alert" id="rps-status" role="status" aria-live="polite">
+        জিতলে +15 coins পাবেন।
+      </p>
+    </div>
+
+    <!-- Game 8: Quick Math -->
+    <div class="game-view" id="view-math">
+      <h3 class="game-title">Quick Math Challenge</h3>
+      <p class="game-instructions" id="math-round">Round 1 of 5</p>
+      <div class="math-question" id="math-question" aria-live="polite"></div>
+      <div class="input-group">
+        <input type="number" id="math-answer" step="1" inputmode="numeric"
+          placeholder="?" aria-label="অংকের উত্তর" />
+      </div>
+      <button class="action-btn" id="math-submit" onclick="submitMathAnswer()">Submit Answer</button>
+      <p class="status-alert" id="math-status" role="status" aria-live="polite">
+        সঠিক উত্তরে +10 coins, মোট ৫টি প্রশ্ন।
+      </p>
+      <button class="action-btn" id="math-restart" onclick="startMathChallenge()" hidden>
+        Play Again
+      </button>
     </div>
 
   </main>
